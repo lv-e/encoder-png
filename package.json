@@ -22,11 +22,18 @@
   "bin": {
     "lv-encoder-lvproject": "./lib/index.js"
   },
+  "scripts": {
+    "dryrun": "tsc -p . && ./lib/index.js -i /tmp/image.png -o /tmp/image_par.png"
+  },
   "dependencies": {
     "@lv-game-editor/lv-cli": "^1.x",
+    "@types/color": "^3.0.1",
+    "@types/pngjs": "^3.4.2",
     "@types/shelljs": "0.8.x",
+    "color": "^3.1.2",
     "esm": "^3.2.25",
     "meow": "^6.x",
+    "pngjs": "^5.0.0",
     "shelljs": "0.8.x"
   },
   "devDependencies": {
