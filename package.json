@@ -1,38 +1,37 @@
 {
-    "name": "@lv-game-editor/encoder-png",
-    "version": "1.0.1",
-    "description": "encoder for .png image files",
-    "author": "“Lino <luizgustavolino@gmail.com> (http://github.com/luizgustavolino)",
-    "homepage": "https://github.com/lv-e/encoder-png",
-    "license": "ISC",
-    "publishConfig": {
-      "access": "public"
-    },
-    "keywords": [
-      "lv-editor, lv-encoder"
-    ],
-    "repository": {
-      "type": "git",
-      "url": "github:lv-e/encoder-png.git"
-    },
-    "files": [
-      "/lib"
-    ],
-    "main": "./lib/index.js",
-    "bin": {
-      "lv-encoder-lvproject": "./lib/index.js"
-    },
-    "dependencies": {
-      "@lv-game-editor/lv-cli": "^1.x",
-      "@types/shelljs": "0.8.x",
-      "esm": "^3.2.25",
-      "meow": "^6.x",
-      "shelljs": "0.8.x"
-    },
-    "devDependencies": {
-      "@types/node": "^13.x",
-      "ts-node": "^8.x",
-      "typescript": "^3.9.3"
-    }
+  "name": "@lv-game-editor/encoder-png",
+  "version": "1.0.2",
+  "description": "encoder for .png image files",
+  "author": "“Lino <luizgustavolino@gmail.com> (http://github.com/luizgustavolino)",
+  "homepage": "https://github.com/lv-e/encoder-png",
+  "license": "ISC",
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "lv-editor, lv-encoder"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "github:lv-e/encoder-png.git"
+  },
+  "files": [
+    "/lib"
+  ],
+  "main": "./lib/index.js",
+  "bin": {
+    "lv-encoder-lvproject": "./lib/index.js"
+  },
+  "dependencies": {
+    "@lv-game-editor/lv-cli": "^1.x",
+    "@types/shelljs": "0.8.x",
+    "esm": "^3.2.25",
+    "meow": "^6.x",
+    "shelljs": "0.8.x"
+  },
+  "devDependencies": {
+    "@types/node": "^13.x",
+    "ts-node": "^8.x",
+    "typescript": "^3.9.3"
   }
-  
+}
