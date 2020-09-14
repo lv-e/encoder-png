@@ -23,7 +23,7 @@
     "lv-encoder-lvproject": "./lib/index.js"
   },
   "scripts": {
-    "dryrun": "tsc -p . && ./lib/index.js -i /tmp/image.png -o /tmp/image_par.png"
+    "dryrun": "tsc -p . && ./lib/index.js -i /tmp/image.png -o /tmp/image.h"
   },
   "dependencies": {
     "@lv-game-editor/lv-cli": "^1.x",
@@ -34,7 +34,8 @@
     "esm": "^3.2.25",
     "meow": "^6.x",
     "pngjs": "^5.0.0",
-    "shelljs": "0.8.x"
+    "shelljs": "0.8.x",
+    "slugify": "^1.4.5"
   },
   "devDependencies": {
     "@types/node": "^13.x",
