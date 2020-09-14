@@ -26,7 +26,7 @@ export function nearest(r:number,g:number,b:number) : number {
         {r: 99, g: 155, b: 255},
         {r: 95, g: 205, b: 228},
         {r: 203, g: 219, b: 252},
-        {r: 255, g: 255, b: 255},
+        {r: 254, g: 254, b: 254},
         {r: 155, g: 173, b: 183},
         {r: 132, g: 126, b: 135},
         {r: 105, g: 106, b: 106},
@@ -49,7 +49,9 @@ export function nearest(r:number,g:number,b:number) : number {
         const iColor = Color({r: indexed.r, g: indexed.g, b: indexed.b})
 
         const distance = Math.sqrt(
-              (color.hue() - iColor.hue()) ^ 2.0 
+              ((color.x() - iColor.x()) ^ 2.0)
+            + ((color.y() - iColor.y()) ^ 2.0)
+            + ((color.x() - iColor.z()) ^ 2.0)
         )
 
         if (distance < minDistance) {
