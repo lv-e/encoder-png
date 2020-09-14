@@ -55,7 +55,7 @@ if (!testing) {
             
             const varName = slug(cli.flags.input)            
             let reduced = `static unsigned char ${varName}[] = `
-            reduced += indexedToHex(indexed)
+            reduced += indexedToHex(indexed) + ";"
             
             let encoded:lv.encoded = {
                 declarations: reduced,
