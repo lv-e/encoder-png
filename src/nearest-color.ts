@@ -6,37 +6,38 @@ export function nearest(r:number,g:number,b:number) : number {
     if( r == 0 && g == 0 && b == 0) return 0;
 
     const db32 = [
-        {r: 0, g: 0, b: 0},
-        {r: 34, g: 32, b: 52},
-        {r: 69, g: 40, b: 60},
-        {r: 102, g: 57, b: 49},
-        {r: 143, g: 86, b: 59},
-        {r: 223, g: 113, b: 38},
-        {r: 217, g: 160, b: 102},
-        {r: 238, g: 195, b: 154},
-        {r: 251, g: 242, b: 54},
-        {r: 153, g: 229, b: 80},
-        {r: 55, g: 148, b: 110},
-        {r: 75, g: 105, b: 47},
-        {r: 82, g: 75, b: 36},
-        {r: 50, g: 60, b: 57},
-        {r: 63, g: 63, b: 116},
-        {r: 48, g: 96, b: 130},
-        {r: 91, g: 110, b: 225},
-        {r: 99, g: 155, b: 255},
-        {r: 95, g: 205, b: 228},
-        {r: 203, g: 219, b: 252},
-        {r: 254, g: 254, b: 254},
-        {r: 155, g: 173, b: 183},
-        {r: 132, g: 126, b: 135},
-        {r: 105, g: 106, b: 106},
-        {r: 89, g: 86, b: 82},
-        {r: 118, g: 66, b: 138},
-        {r: 172, g: 50, b: 50},
-        {r: 217, g: 87, b: 99},
-        {r: 215, g: 123, b: 186},
-        {r: 143, g: 151, b: 74},
-        {r: 138, g: 111, b: 48}
+        "#000000",
+        "#222034",
+        "#45283c",
+        "#663931",
+        "#8f563b",
+        "#df7126",
+        "#d9a066",
+        "#eec39a",
+        "#fbf236",
+        "#99e550",
+        "#6abe30",
+        "#37946e",
+        "#4b692f",
+        "#524b24",
+        "#323c39",
+        "#3f3f74",
+        "#306082",
+        "#5b6ee1",
+        "#639bff",
+        "#5fcde4",
+        "#cbdbfc",
+        "#ffffff",
+        "#9badb7",
+        "#847e87",
+        "#696a6a",
+        "#595652",
+        "#76428a",
+        "#ac3232",
+        "#d95763",
+        "#d77bba",
+        "#8f974a",
+        "#8a6f30"
     ]
 
     let minDistance = 9999;
@@ -46,7 +47,7 @@ export function nearest(r:number,g:number,b:number) : number {
     for (let i = 1; i < db32.length; i++) {
 
         const indexed = db32[i];
-        const iColor = Color({r: indexed.r, g: indexed.g, b: indexed.b})
+        const iColor = Color(indexed)
 
         const distance = Math.sqrt(
               ((color.x() - iColor.x()) ^ 2.0)
