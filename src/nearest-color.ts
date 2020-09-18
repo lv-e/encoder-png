@@ -53,7 +53,6 @@ export function nearest(r:number,g:number,b:number) : number {
               ((color.red() - iColor.red()) ^ 2.0)
             + ((color.green() - iColor.green()) ^ 2.0)
             + ((color.blue() - iColor.blue()) ^ 2.0)
-            + ((color.hue()*2 - iColor.hue()*2) ^ 2.0)
         )
 
         if (distance < minDistance) {
