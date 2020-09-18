@@ -51,7 +51,7 @@ export function nearest(r:number,g:number,b:number) : number {
         const distance = Math.sqrt(
               ((color.x() - iColor.x()) ^ 2.0)
             + ((color.y() - iColor.y()) ^ 2.0)
-            + ((color.x() - iColor.z()) ^ 2.0)
+            + ((color.z() - iColor.z()) ^ 2.0)
         )
 
         if (distance < minDistance) {
