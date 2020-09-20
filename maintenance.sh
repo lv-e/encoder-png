@@ -48,16 +48,27 @@ rebuild(){
     tsc -p .
 }
 
+test(){
+
+    echo "cleaning and rebuilding..."
+    rebuild
+
+    echo "running all tests using jest"
+    NODE_OPTIONS=--trace-warnings yarn jest --coverage 
+}
+
 ## what should we do?
 
  while true; do
 
         echo "available options are:"
         echo "1) publish"
+        echo "2) test"
         read -p "choose one: " opt; echo "--"
 
         case $opt in
             1) publish; break;;
+            2) test; break;;
             * ) echo "ok! bye."; exit;;
         esac
 done

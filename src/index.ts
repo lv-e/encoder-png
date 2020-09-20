@@ -16,6 +16,12 @@ let slugify = require('slugify')
 const testing = (process.env.NODE_ENV === 'test')
 export let verbose = testing ? true : false
 
+if (true) {
+
+    
+
+} else {
+
 if (!testing) {
         
     let cli = meow(`
@@ -89,3 +95,5 @@ if (!testing) {
         })
 }
 
+
+}
