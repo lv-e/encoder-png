@@ -56,9 +56,11 @@ export function fileHeader(data:{width:number, height:number, colors:number}) : 
     /*
         sample | name        | values
         -------|-------------|--------------------------------------------------------
-           001 | width       | 2 ^ (w+2) = 8px  (from 8px to 512px)
-           010 | height      | 2 ^ (h+2) = 16px (from 8px to 512px)
-            01 | 1bpp planes | 00: don't use planes; 01: 1p/2colors, 10: 2p/4colors, 11: 3p/8colors
+           001 | width       | 2 ^ (w+2) = 8px  (from 8px to 512px).
+           010 | height      | 2 ^ (h+2) = 16px (from 8px to 512px).
+           001 | 1bpp planes | 000: don't use planes;
+               |             | 001: 1p/2colors, 010: 2p/4colors;
+               |             | 011: 3p/8colors, 100: 4p/16colors.
     */
 
     const widthExp  = Math.ceil(Math.log(data.width) / Math.log(2.0))   - 2
@@ -68,10 +70,11 @@ export function fileHeader(data:{width:number, height:number, colors:number}) : 
          number2Bits(widthExp, 3)
         .concat(number2Bits(heightExp, 3))
  
-    if (data.colors      <= 2) buffer = buffer.concat([0,1])
-    else if (data.colors <= 4) buffer = buffer.concat([1,0])
-    else if (data.colors <= 8) buffer = buffer.concat([1,1])
-    else buffer = buffer.concat([0, 0])
+    if (data.colors      <= 2)  buffer = buffer.concat([0,0,1])
+    else if (data.colors <= 4)  buffer = buffer.concat([0,1,0])
+    else if (data.colors <= 8)  buffer = buffer.concat([0,1,1])
+    else if (data.colors <= 16) buffer = buffer.concat([1,0,0])
+    else buffer = buffer.concat([0, 0, 0])
 
     return buffer
 }

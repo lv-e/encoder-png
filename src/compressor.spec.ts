@@ -81,13 +81,16 @@ function testPNGCompression(file:string, agressive:boolean = true) : Promise<voi
 test("file header generation", () =>{
 
     let hdr2 = fileHeader({width:512, height:512, colors:2})
-    expect(hdr2).toStrictEqual([ 1,1,1, 1,1,1, 0, 1])
+    expect(hdr2).toStrictEqual([ 1,1,1, 1,1,1, 0,0,1])
 
     let hdr6 = fileHeader({width:256, height:128, colors:6})
-    expect(hdr6).toStrictEqual([ 1,1,0, 1,0,1, 1,1])
+    expect(hdr6).toStrictEqual([ 1,1,0, 1,0,1, 0,1,1])
 
     let hdr16 = fileHeader({width:128, height:128, colors:16})
-    expect(hdr16).toStrictEqual([ 1,0,1, 1,0,1, 0, 0])
+    expect(hdr16).toStrictEqual([ 1,0,1, 1,0,1, 1,0,0])
+
+    let hdr32 = fileHeader({width:8, height:512, colors:32})
+    expect(hdr32).toStrictEqual([ 0,0,1, 1,1,1, 1,0,0])
 })
 
 test("plane header generation", () =>{
