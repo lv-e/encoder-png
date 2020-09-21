@@ -1,9 +1,10 @@
-import { PNG } from "pngjs"
 
 export type Bit = (0|1)
 
-export function number2Bits(n:number) : Bit[] {
-    return n.toString(2).split("").map( b => b == "0" ? 0 : 1)
+export function number2Bits(n:number, size:(number|null) = null) : Bit[] {
+    let bits = n.toString(2).split("").map( b => b == "0" ? 0 : 1)
+    if (size != null) while(bits.length < size) bits.unshift(0)
+    return bits
 }
 
 export function bits2Int(bits:Bit[]) : number {
@@ -30,31 +31,31 @@ export function compressBitPlane(bits:Bit[]) : Bit[] {
     return compressed
 }
 
-export function header( indexed:number[], png:PNG) : Bit[] {
+export function bitPlaneHeader(data:{width:number, height:number, colors:number}) : Bit[] {
+    return []
+}
+
+export function fileHeader(data:{width:number, height:number, colors:number}) : Bit[] {
     
     /*
         sample | name        | values
         -------|-------------|--------------------------------------------------------
-            0001 | width       | 2 ^ (w+1) = 4px (from 4px to 512px)
-            0010 | height      | 2 ^ (h+1) = 8px
+           001 | width       | 2 ^ (w+2) = 8px  (from 8px to 512px)
+           010 | height      | 2 ^ (h+2) = 16px (from 8px to 512px)
             01 | 1bpp planes | 00: don't use planes; 01: 1p/2colors, 10: 2p/4colors, 11: 3p/8colors
     */
 
-    const widthExp  = Math.ceil(Math.log(png.width) / Math.log(2.0))
-    const heightExp = Math.ceil(Math.log(png.width) / Math.log(2.0))
-
-    const colourCount = indexed.filter((value:number, index:number, self:number[]) => {
-        return self.indexOf(value) === index;
-    }).length
+    const widthExp  = Math.ceil(Math.log(data.width) / Math.log(2.0))   - 2
+    const heightExp = Math.ceil(Math.log(data.height) / Math.log(2.0))  - 2
 
     let buffer:Bit[] = 
-        number2Bits(widthExp)
-        .concat(number2Bits(heightExp))
+         number2Bits(widthExp, 3)
+        .concat(number2Bits(heightExp, 3))
  
-    if (colourCount <= 2) buffer = buffer.concat([0,1])
-    else if (colourCount <= 4) buffer = buffer.concat([1,0])
-    else if (colourCount <= 8) buffer = buffer.concat([1,1])
-    else buffer.concat([0])
+    if (data.colors      <= 2) buffer = buffer.concat([0,1])
+    else if (data.colors <= 4) buffer = buffer.concat([1,0])
+    else if (data.colors <= 8) buffer = buffer.concat([1,1])
+    else buffer = buffer.concat([0, 0])
 
     return buffer
 }

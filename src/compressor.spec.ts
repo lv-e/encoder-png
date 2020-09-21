@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { PNG } from "pngjs";
-import { Bit, compressBitPlane, decodeLength, encodeLength, splitInPlanes } from "./compressor";
+import { Bit, compressBitPlane, decodeLength, encodeLength, fileHeader, splitInPlanes } from "./compressor";
 import { trueColorToIndexed } from "./truecolor-to-indexed";
 
 test("length encoding and decoding",  () =>{
@@ -39,15 +39,18 @@ test("plane compresssion",  () =>{
 })
 
 test("4 colors compression",  () =>{
-    return testPNGCompression("test-files/four_colors.png", true)
+    // sample image from https://opengameart.org/users/grafxkid
+    return testPNGCompression("test-files/grafxkid_4.png", false)
 })
 
 test("6 colors compression",  () =>{
-    return testPNGCompression("test-files/6_cor.png", false)
+    // sample image from https://opengameart.org/users/grafxkid
+    return testPNGCompression("test-files/grafxkid_6.png", false)
 })
 
 test("8 colors compression",  () =>{
-    return testPNGCompression("test-files/8col.png", false)
+    // sample image from https://opengameart.org/users/grafxkid
+    return testPNGCompression("test-files/grafxkid_8.png", false)
 })
 
 function testPNGCompression(file:string, agressive:boolean = true) : Promise<void> {
@@ -74,3 +77,15 @@ function testPNGCompression(file:string, agressive:boolean = true) : Promise<voi
             })
     })
 }
+
+test("header generation", () =>{
+
+    let hdr2 = fileHeader({width:512, height:512, colors:2})
+    expect(hdr2).toStrictEqual([ 1,1,1, 1,1,1, 0, 1])
+
+    let hdr6 = fileHeader({width:256, height:128, colors:6})
+    expect(hdr6).toStrictEqual([ 1,1,0, 1,0,1, 1,1])
+
+    let hdr16 = fileHeader({width:128, height:128, colors:16})
+    expect(hdr16).toStrictEqual([ 1,0,1, 1,0,1, 0, 0])
+})
