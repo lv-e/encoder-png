@@ -92,7 +92,7 @@ test("file header generation", () =>{
 
 test("plane header generation", () =>{
     let bits = Array<Bit>(1200).fill(1)
-    const planeHeaderA = bitPlaneHeader({color0: 20, color1: 8, bits:[]})
+    const planeHeaderA = bitPlaneHeader({color0: 20, color1: 8, bits: bits})
     expect(planeHeaderA).toStrictEqual([
         1,0,1,0,0,
         0,1,0,0,0,
