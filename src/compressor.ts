@@ -1,5 +1,14 @@
+import { PNG } from "pngjs"
 
 export type Bit = (0|1)
+
+export function number2Bits(n:number) : Bit[] {
+    return n.toString(2).split("").map( b => b == "0" ? 0 : 1)
+}
+
+export function bits2Int(bits:Bit[]) : number {
+    return parseInt(bits.join(""), 2)
+}
 
 export function compressBitPlane(bits:Bit[]) : Bit[] {
 
@@ -21,9 +30,38 @@ export function compressBitPlane(bits:Bit[]) : Bit[] {
     return compressed
 }
 
+export function header( indexed:number[], png:PNG) : Bit[] {
+    
+    /*
+        sample | name        | values
+        -------|-------------|--------------------------------------------------------
+            0001 | width       | 2 ^ (w+1) = 4px (from 4px to 512px)
+            0010 | height      | 2 ^ (h+1) = 8px
+            01 | 1bpp planes | 00: don't use planes; 01: 1p/2colors, 10: 2p/4colors, 11: 3p/8colors
+    */
+
+    const widthExp  = Math.ceil(Math.log(png.width) / Math.log(2.0))
+    const heightExp = Math.ceil(Math.log(png.width) / Math.log(2.0))
+
+    const colourCount = indexed.filter((value:number, index:number, self:number[]) => {
+        return self.indexOf(value) === index;
+    }).length
+
+    let buffer:Bit[] = 
+        number2Bits(widthExp)
+        .concat(number2Bits(heightExp))
+ 
+    if (colourCount <= 2) buffer = buffer.concat([0,1])
+    else if (colourCount <= 4) buffer = buffer.concat([1,0])
+    else if (colourCount <= 8) buffer = buffer.concat([1,1])
+    else buffer.concat([0])
+
+    return buffer
+}
+
 export function encodeLength(l:number) : Bit[] {
     if ( l == 1) return [1];
-    let binary = l.toString(2).split('').map( e => parseInt(e) == 1 ? 1 : 0)
+    let binary = number2Bits(l)
     let start = Array<Bit>(binary.length - 1).fill(0)
     return start.concat(binary)
 }
@@ -46,7 +84,7 @@ export function decodeLength(data:Bit[]) : number {
         buffer.push(bit)
     }
     
-    return parseInt(buffer.join(""), 2)
+    return bits2Int(buffer)
 }
 
 export function splitInPlanes(indexedBuffer:number[], 
@@ -64,10 +102,10 @@ export function splitInPlanes(indexedBuffer:number[],
     let planes = Math.ceil(Math.log(colors.length) / Math.log(2.0))
     let response:Bit[][] = []
 
-    let bestScore = 999999
-    let permutations = perm(colors)
-    let cpuLimiter = 1024
-    let maxLoops = Math.min(cpuLimiter, (agressive ? permutations.length : 1))
+    let bestScore       = 999999
+    let permutations    = perm(colors)
+    let cpuLimiter      = 1024
+    let maxLoops        = Math.min(cpuLimiter, (agressive ? permutations.length : 1))
     
     for(let p = 0; p < maxLoops; p++) {
 
@@ -103,7 +141,7 @@ export function splitInPlanes(indexedBuffer:number[],
     }
 
     if(verbose) {
-        let raw = (indexedBuffer.length * planes)/8.0/1024.0
+        let raw = (indexedBuffer.length * planes) / 8.0 / 1024.0
         console.log(
             `\n⌈ colors: ${colors.length}`,
             `\n⎮ ratio: ${(bestScore/raw).toFixed(2)}`,
