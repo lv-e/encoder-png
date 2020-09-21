@@ -117,15 +117,13 @@ export function splitInPlanes(indexedBuffer:number[],
         if(!colors.includes(c)) colors.push(c)
     })
     
-    if(verbose) console.log("colour count: ", colors.length)
-    
     let planes = Math.ceil(Math.log(colors.length) / Math.log(2.0))
     let response:Bit[][] = []
 
     let bestScore       = 999999
-    let permutations    = perm(colors)
     let cpuLimiter      = 1024
-    let maxLoops        = Math.min(cpuLimiter, (agressive ? permutations.length : 1))
+    let maxLoops        = Math.min(cpuLimiter, (agressive ? factorial(colors.length) : 1))
+    let permutations    = maxLoops > 1 ? perm(colors) : [colors]
     
     for(let p = 0; p < maxLoops; p++) {
 
@@ -191,3 +189,17 @@ function perm(xs:Array<number>) {
 
     return ret;
 }
+
+
+function factorial(n:number) {
+
+    let x = n;
+    if (n == 0 || n == 1) return 1
+
+    while (n > 1) { 
+        n -= 1
+        x *= n
+    }
+
+    return x
+  }

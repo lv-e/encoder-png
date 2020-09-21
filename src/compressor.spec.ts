@@ -53,6 +53,11 @@ test("8 colors compression",  () =>{
     return testPNGCompression("test-files/grafxkid_8.png", false)
 })
 
+test("12 colors compression",  () =>{
+    // sample image from https://opengameart.org/users/grafxkid
+    return testPNGCompression("test-files/grafxkid_12.png", false)
+})
+
 function testPNGCompression(file:string, agressive:boolean = true) : Promise<void> {
     return new Promise<void>((resolve, reject) => {
         fs.createReadStream(file)
@@ -90,7 +95,7 @@ test("file header generation", () =>{
     expect(hdr16).toStrictEqual([ 1,0,1, 1,0,1, 1,0,0])
 
     let hdr32 = fileHeader({width:8, height:512, colors:32})
-    expect(hdr32).toStrictEqual([ 0,0,1, 1,1,1, 1,0,0])
+    expect(hdr32).toStrictEqual([ 0,0,1, 1,1,1, 0,0,0])
 })
 
 test("plane header generation", () =>{
