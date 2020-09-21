@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { PNG } from "pngjs";
-import { Bit, compressBitPlane, decodeLength, encodeLength, fileHeader, splitInPlanes } from "./compressor";
+import { Bit, bitPlaneHeader, compressBitPlane, decodeLength, encodeLength, fileHeader, splitInPlanes } from "./compressor";
 import { trueColorToIndexed } from "./truecolor-to-indexed";
 
 test("length encoding and decoding",  () =>{
@@ -78,7 +78,7 @@ function testPNGCompression(file:string, agressive:boolean = true) : Promise<voi
     })
 }
 
-test("header generation", () =>{
+test("file header generation", () =>{
 
     let hdr2 = fileHeader({width:512, height:512, colors:2})
     expect(hdr2).toStrictEqual([ 1,1,1, 1,1,1, 0, 1])
@@ -88,4 +88,14 @@ test("header generation", () =>{
 
     let hdr16 = fileHeader({width:128, height:128, colors:16})
     expect(hdr16).toStrictEqual([ 1,0,1, 1,0,1, 0, 0])
+})
+
+test("plane header generation", () =>{
+    let bits = Array<Bit>(1200).fill(1)
+    const planeHeaderA = bitPlaneHeader({color0: 20, color1: 8, bits:[]})
+    expect(planeHeaderA).toStrictEqual([
+        1,0,1,0,0,
+        0,1,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,
+        1,0,0,1,0,1,1,0,0,0,0])
 })

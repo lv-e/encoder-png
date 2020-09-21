@@ -31,8 +31,24 @@ export function compressBitPlane(bits:Bit[]) : Bit[] {
     return compressed
 }
 
-export function bitPlaneHeader(data:{width:number, height:number, colors:number}) : Bit[] {
-    return []
+export function bitPlaneHeader(data:{color0:number, color1:number, bits:Bit[]}) : Bit[] {
+
+    /*
+        00100 | 5 bit color indx of two plane's colors
+        01001 | -
+
+        00000 | encoded plane size in bits
+        00001 | 000000000  => 9+1 bits long number
+        10010 | 1100101101 => 813 bits long plane
+        1101  |
+    */
+
+   const buffer:Bit[] = 
+         number2Bits(data.color0, 5)
+        .concat(number2Bits(data.color1, 5))
+        .concat(encodeLength(data.bits.length))
+
+    return buffer
 }
 
 export function fileHeader(data:{width:number, height:number, colors:number}) : Bit[] {
