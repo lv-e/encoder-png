@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { PNG } from "pngjs";
-import { Bit, bitPlaneHeader, compressBitPlane, decodeLength, encodeLength, fileHeader, splitInPlanes } from "./compressor";
+import { Bit, bitPlane, compressBitPlane, decodeLength, encodeLength, fileHeader, splitInPlanes } from "./compressor";
 import { trueColorToIndexed } from "./truecolor-to-indexed";
 
 test("length encoding and decoding",  () =>{
@@ -22,7 +22,7 @@ test("plane compresssion",  () =>{
         0000000000000000
         0000000000000000
         0000000000000000
-        0001000111000100
+        0000111111111000
         0001000000000100
         0001000000000100
         0000111111111000
@@ -36,6 +36,10 @@ test("plane compresssion",  () =>{
     let ratio = compressed.length / data.length
     console.log("compression rate: ", ratio)
     expect(ratio).toBeLessThan(1.0)
+})
+
+test("2 colors compression",  () =>{
+    return testPNGCompression("test-files/asset_2.png", true)
 })
 
 test("4 colors compression",  () =>{
@@ -85,25 +89,57 @@ function testPNGCompression(file:string, agressive:boolean = true) : Promise<voi
 
 test("file header generation", () =>{
 
-    let hdr2 = fileHeader({width:512, height:512, colors:2})
+    function colors(count:number) : number[] {
+        return Array<number>(count).map((v_,i) => i)
+    }
+
+    let hdr2 = fileHeader({width:512, height:512, colors:colors(2)})
     expect(hdr2).toStrictEqual([ 1,1,1, 1,1,1, 0,0,1])
 
-    let hdr6 = fileHeader({width:256, height:128, colors:6})
+    let hdr6 = fileHeader({width:256, height:128, colors:colors(6)})
     expect(hdr6).toStrictEqual([ 1,1,0, 1,0,1, 0,1,1])
 
-    let hdr16 = fileHeader({width:128, height:128, colors:16})
+    let hdr16 = fileHeader({width:128, height:128, colors:colors(16)})
     expect(hdr16).toStrictEqual([ 1,0,1, 1,0,1, 1,0,0])
 
-    let hdr32 = fileHeader({width:8, height:512, colors:32})
+    let hdr32 = fileHeader({width:8, height:512, colors:colors(32)})
     expect(hdr32).toStrictEqual([ 0,0,1, 1,1,1, 0,0,0])
 })
 
 test("plane header generation", () =>{
+
+    function pump(bit:Bit, times:number) : Bit[] {
+        return Array<Bit>(times).fill(bit)
+    }
+
     let bits = Array<Bit>(1200).fill(1)
-    const planeHeaderA = bitPlaneHeader({color0: 20, color1: 8, bits: bits})
+
+    const planeHeaderA = bitPlane(bits)
     expect(planeHeaderA).toStrictEqual([
-        1,0,1,0,0,
-        0,1,0,0,0,
         0,0,0,0,0,0,0,0,0,0,
-        1,0,0,1,0,1,1,0,0,0,0])
+        1,0,0,1,0,1,1,0,0,0,0,
+
+        1,
+        
+        0,0,0,0,0,0,0,0,0,0,
+        1,0,0,1,0,1,1,0,0,0,0,
+    ])
+
+
+    bits = pump(0, 600).concat(pump(1, 600))
+
+    const planeHeaderB = bitPlane(bits)
+    expect(planeHeaderB).toStrictEqual([
+
+        0,0,0,0,0,0,0,0,0,0,
+        1,0,0,1,0,1,1,0,0,0,0,
+        
+        0,
+        
+        0,0,0,0,0,0,0,0,0,
+        1,0,0,1,0,1,1,0,0,0,
+        
+        0,0,0,0,0,0,0,0,0,
+        1,0,0,1,0,1,1,0,0,0
+    ])
 })

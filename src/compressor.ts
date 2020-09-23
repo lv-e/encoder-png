@@ -13,45 +13,44 @@ export function bits2Int(bits:Bit[]) : number {
 
 export function compressBitPlane(bits:Bit[]) : Bit[] {
 
-    let compressed:Bit[] = [0]
-    let current = 0
+    let compressed:Bit[] = [bits[0]]
+    let current = -1
     let counter = 0
 
     bits.forEach( bit => {
+        
         if(bit == current) {
             counter += 1
-        } else {
+            return
+        }
+
+        if(current != -1) {
             compressed = compressed.concat(encodeLength(counter))
             current = current == 0 ? 1 : 0
-            counter = 0
-        }
+        } else current = bits[0]
+        
+        counter = 1
     })
 
     compressed = compressed.concat(encodeLength(counter))
     return compressed
 }
 
-export function bitPlaneHeader(data:{color0:number, color1:number, bits:Bit[]}) : Bit[] {
+export function bitPlane(bits:Bit[]) : Bit[] {
 
     /*
-        00100 | 5 bit color indx of two plane's colors
-        01001 | -
-
-        00000 | encoded plane size in bits
-        00001 | 000000000  => 9+1 bits long number
-        10010 | 1100101101 => 813 bits long plane
+        00000 | encoded plane size in bits:
+        00001 | > 000000000  => 9+1 bits long number
+        10010 | > 1100101101 => 813 bits long plane
         1101  |
+        ... compressed bits        
     */
 
-   const buffer:Bit[] = 
-         number2Bits(data.color0, 5)
-        .concat(number2Bits(data.color1, 5))
-        .concat(encodeLength(data.bits.length))
-
-    return buffer
+    return encodeLength(bits.length)
+    .concat(compressBitPlane(bits))
 }
 
-export function fileHeader(data:{width:number, height:number, colors:number}) : Bit[] {
+export function fileHeader(data:{width:number, height:number, colors:number[]}) : Bit[] {
     
     /*
         sample | name        | values
@@ -61,6 +60,10 @@ export function fileHeader(data:{width:number, height:number, colors:number}) : 
            001 | 1bpp planes | 000: don't use planes;
                |             | 001: 1p/2colors, 010: 2p/4colors;
                |             | 011: 3p/8colors, 100: 4p/16colors.
+
+        sample | name        | values
+        -------|-------------|--------------------------------------------------------
+         00010 | color       | 2 * #planes color definitions
     */
 
     const widthExp  = Math.ceil(Math.log(data.width) / Math.log(2.0))   - 2
@@ -70,11 +73,14 @@ export function fileHeader(data:{width:number, height:number, colors:number}) : 
          number2Bits(widthExp, 3)
         .concat(number2Bits(heightExp, 3))
  
-    if (data.colors      <= 2)  buffer = buffer.concat([0,0,1])
-    else if (data.colors <= 4)  buffer = buffer.concat([0,1,0])
-    else if (data.colors <= 8)  buffer = buffer.concat([0,1,1])
-    else if (data.colors <= 16) buffer = buffer.concat([1,0,0])
+    const colorCount = data.colors.length
+    if (colorCount      <= 2)  buffer = buffer.concat([0,0,1])
+    else if (colorCount <= 4)  buffer = buffer.concat([0,1,0])
+    else if (colorCount <= 8)  buffer = buffer.concat([0,1,1])
+    else if (colorCount <= 16) buffer = buffer.concat([1,0,0])
     else buffer = buffer.concat([0, 0, 0])
+
+    data.colors.forEach
 
     return buffer
 }
@@ -137,19 +143,19 @@ export function splitInPlanes(indexedBuffer:number[],
         for (let i = 0; i < width * height; i++) {
             
             let pixelColor = attemptColors.indexOf(indexedBuffer[i]) 
-            let binStream:Bit[] = pixelColor.toString(2).split("").map( e => parseInt(e) == 1 ? 1 : 0)
+            let binStream:Bit[] = number2Bits(pixelColor, planes)
             
-            const pad = binStream.length%planes
-            for (let i = 0; i < pad; i++) binStream.push(0)
-    
             for (let plane = 0; plane < planes; plane++) {
                 attempt[plane].push(binStream[plane])
             }
         }
 
         let score = 0
-        for (let plane = 0; plane < planes; plane++) {
-            score += (compressBitPlane(attempt[plane]).length) / 8 / 1024
+
+        if(agressive || verbose) {
+            for (let plane = 0; plane < planes; plane++) {
+                score += (compressBitPlane(attempt[plane]).length) / 8 / 1024
+            }
         }
         
         if (score < bestScore) {
@@ -202,4 +208,4 @@ function factorial(n:number) {
     }
 
     return x
-  }
+}
