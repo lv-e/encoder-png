@@ -1,10 +1,10 @@
 
-
+const using_octas = false
 export function indexedToHex(indexed:number[]) : string {
 
     let bytes = indexed
         .reverse()
-        .map( c => c.toString(2).padStart(5, '0') )
+        .map( c => c.toString(2).padStart( using_octas ? 5 : 8, '0') )
         .join("")
         .split("")
 
