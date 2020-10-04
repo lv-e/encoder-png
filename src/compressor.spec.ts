@@ -69,7 +69,7 @@ function testPNGCompression(file:string, agressive:boolean = true) : Promise<voi
             .on("parsed", function () {
                 
                 const indexed = trueColorToIndexed(this)
-                const planes  = splitInPlanes(indexed, this.width, this.height, agressive, true)
+                const planes  = splitInPlanes(indexed.pixels, this.width, this.height, agressive, true)
                 
                 let compressed:number[] = []
                 planes.forEach( p => compressed = compressed.concat(compressBitPlane(p)))
@@ -90,20 +90,73 @@ function testPNGCompression(file:string, agressive:boolean = true) : Promise<voi
 test("file header generation", () =>{
 
     function colors(count:number) : number[] {
-        return Array<number>(count).map((v_,i) => i)
+        return Array<number>(count).fill(0).map((v_,i) => i)
     }
 
     let hdr2 = fileHeader({width:512, height:512, colors:colors(2)})
-    expect(hdr2).toStrictEqual([ 1,1,1, 1,1,1, 0,0,1])
+    
+    expect(hdr2).toStrictEqual([ 
+
+        0,1,1,0,0,      // sign
+        0,0,1,          // planes
+
+        0,1,            // version
+        1,1,1, 1,1,1,   // w & h
+
+        0,0,0,0,0,0,0,0, // color 0
+        0,0,0,0,0,0,0,1, // color 1
+    ])
 
     let hdr6 = fileHeader({width:256, height:128, colors:colors(6)})
-    expect(hdr6).toStrictEqual([ 1,1,0, 1,0,1, 0,1,1])
+    expect(hdr6).toStrictEqual([ 
+        0,1,1,0,0,
+        0,1,1, 
+
+        0,1,
+        1,1,0, 1,0,1,
+        
+        0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,1,
+        0,0,0,0,0,0,1,0,
+        0,0,0,0,0,0,1,1,
+        0,0,0,0,0,1,0,0,
+        0,0,0,0,0,1,0,1,
+    ])
 
     let hdr16 = fileHeader({width:128, height:128, colors:colors(16)})
-    expect(hdr16).toStrictEqual([ 1,0,1, 1,0,1, 1,0,0])
+    expect(hdr16).toStrictEqual([ 
+        0,1,1,0,0,
+        1,0,0, 
+
+        0,1,
+        1,0,1, 1,0,1,
+        
+        0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,1,
+        0,0,0,0,0,0,1,0,
+        0,0,0,0,0,0,1,1,
+        0,0,0,0,0,1,0,0,
+        0,0,0,0,0,1,0,1,
+        0,0,0,0,0,1,1,0,
+        0,0,0,0,0,1,1,1,
+        0,0,0,0,1,0,0,0,
+        0,0,0,0,1,0,0,1,
+        0,0,0,0,1,0,1,0,
+        0,0,0,0,1,0,1,1,
+        0,0,0,0,1,1,0,0,
+        0,0,0,0,1,1,0,1,
+        0,0,0,0,1,1,1,0,
+        0,0,0,0,1,1,1,1,
+    ])
 
     let hdr32 = fileHeader({width:8, height:512, colors:colors(32)})
-    expect(hdr32).toStrictEqual([ 0,0,1, 1,1,1, 0,0,0])
+    expect(hdr32.slice(0,16)).toStrictEqual([ 
+        0,1,1,0,0,
+        0,0,0,
+
+        0,1,
+        0,0,1, 1,1,1
+    ])
 })
 
 test("plane header generation", () =>{
@@ -115,31 +168,39 @@ test("plane header generation", () =>{
     let bits = Array<Bit>(1200).fill(1)
 
     const planeHeaderA = bitPlane(bits)
+    
     expect(planeHeaderA).toStrictEqual([
-        0,0,0,0,0,0,0,0,0,0,
-        1,0,0,1,0,1,1,0,0,0,0,
 
-        1,
+        0, 1,1, // payload of 3 bytes
+        0,0,0,0,0, // padding
         
-        0,0,0,0,0,0,0,0,0,0,
-        1,0,0,1,0,1,1,0,0,0,0,
+        1, // start with: 1
+
+        0,0,0, 0,0,0,0, 0,0,0, // 10 bits encoded size
+        1,0,0, 1,0,1,1, 0,0,0,0, // RLE of 1200 1's
+        
+        0,0 // padding
     ])
 
 
     bits = pump(0, 600).concat(pump(1, 600))
 
     const planeHeaderB = bitPlane(bits)
+    console.log("planeHeaderB", planeHeaderB.join(","))
+    
     expect(planeHeaderB).toStrictEqual([
 
-        0,0,0,0,0,0,0,0,0,0,
-        1,0,0,1,0,1,1,0,0,0,0,
+        0,0, 1,0,1, // payload of 5 bytes
+        0,0,0, // padding
         
-        0,
+        0, // starts with 0
+
+        0,0, 0,0,0,0, 0,0,0, // 9 bits encoded size
+        1,0, 0,1,0,1, 1,0,0,0, // RLE of 600 1's
+
+        0,0, 0,0,0,0, 0,0,0, // 9 bits encoded size
+        1,0, 0,1,0,1, 1,0,0,0, // RLE of 600 1's
         
-        0,0,0,0,0,0,0,0,0,
-        1,0,0,1,0,1,1,0,0,0,
-        
-        0,0,0,0,0,0,0,0,0,
-        1,0,0,1,0,1,1,0,0,0
+        0 // padding
     ])
 })

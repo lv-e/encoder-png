@@ -1,10 +1,11 @@
 import { PNG } from "pngjs";
 import { nearest } from "./nearest-color";
 
-export function trueColorToIndexed(png:PNG) : number[] {
+export function trueColorToIndexed(png:PNG, addingPadding:boolean = false) : { pixels: number[], colors: number[] } {
 
-    let indexed:number[] = []
-    
+    let pixels:number[] = []
+    let colors:number[] = []
+
     for (var y = 0; y < png.height; y++) {
         for (var x = 0; x < png.width; x++) {
             var idx = (png.width * y + x) << 2;
@@ -13,13 +14,16 @@ export function trueColorToIndexed(png:PNG) : number[] {
             const g = png.data[idx + 1]
             const b = png.data[idx + 2]
             
-            const nrts = nearest(r,g,b)
-            indexed.push(nrts.indexed)
+            const i = nearest(r,g,b).indexed
+            if (!colors.includes(i)) colors.push(i)
+            pixels.push(i)
         }
     }
 
-    const pad = indexed.length%8 // make 8n
-    for (let i = 0; i < pad; i++) indexed.push(0)
+    if(addingPadding) {
+        const pad = pixels.length%8 // make 8n
+        for (let i = 0; i < pad; i++) pixels.push(0)
+    }
     
-    return indexed
+    return { pixels, colors}
 }

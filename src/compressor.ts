@@ -39,40 +39,53 @@ export function compressBitPlane(bits:Bit[]) : Bit[] {
 export function bitPlane(bits:Bit[]) : Bit[] {
 
     /*
-        00000 | encoded plane size in bits:
+        00000 | encoded plane size in BYTES:
         00001 | > 000000000  => 9+1 bits long number
-        10010 | > 1100101101 => 813 bits long plane
-        1101  |
-        ... compressed bits        
+        10010 | > 1100101101 => 813 bytes long plane
+            N | padding until close byte
+        ...   | compressed bits + padding
+            N | padding until close byte
     */
 
-    return encodeLength(bits.length)
-    .concat(compressBitPlane(bits))
+    let compressed = compressBitPlane(bits)
+    let padding = compressed.length % 8
+    if (padding != 0) compressed = compressed.concat(Array<Bit>(8 - padding).fill(0))
+
+    let size = encodeLength(compressed.length / 8)
+    padding = size.length % 8
+    if (padding != 0) size = size.concat(Array<Bit>(8 - padding).fill(0))
+
+    console.log(`l size: ${size.length}  c size: ${compressed.length}`)
+
+    return size.concat(compressed)
 }
 
 export function fileHeader(data:{width:number, height:number, colors:number[]}) : Bit[] {
     
-    /*
-        sample | name        | values
-        -------|-------------|--------------------------------------------------------
-           001 | width       | 2 ^ (w+2) = 8px  (from 8px to 512px).
-           010 | height      | 2 ^ (h+2) = 16px (from 8px to 512px).
-           001 | 1bpp planes | 000: don't use planes;
-               |             | 001: 1p/2colors, 010: 2p/4colors;
-               |             | 011: 3p/8colors, 100: 4p/16colors.
-
-        sample | name        | values
-        -------|-------------|--------------------------------------------------------
-         00010 | color       | 2 * #planes color definitions
-    */
+/*
+  sample | name        | values
+ --------+-------------+-------------------------= 1 byte =---------------------
+   01100 | sign        | always 01100
+     011 | 1bpp planes | 000: don't use planes;
+         |             | 001: 1p/2colors, 010: 2p/4colors;
+         |             | 011: 3p/8colors, 100: 4p/16colors.  
+         |             | 
+---------+-------------+------------------------= 1 byte =----------------------
+      01 | version     | current value is 01
+     001 | width       | 2 ^ (w+2) = 8px  (from 4px to 512px).
+     010 | height      | 2 ^ (h+2) = 16px (from 4px to 512px).    
+         |             | 
+---------+-------------+------------------------= n colors * bytes =------------
+ 0000010 | color       | 2 * #planes color definitions as DB32 index number
+*/
 
     const widthExp  = Math.ceil(Math.log(data.width) / Math.log(2.0))   - 2
     const heightExp = Math.ceil(Math.log(data.height) / Math.log(2.0))  - 2
 
-    let buffer:Bit[] = 
-         number2Bits(widthExp, 3)
-        .concat(number2Bits(heightExp, 3))
- 
+    // ( 1 byte )
+    let buffer:Bit[] = Array<Bit>()
+        .concat([0,1,1,0,0])
+
     const colorCount = data.colors.length
     if (colorCount      <= 2)  buffer = buffer.concat([0,0,1])
     else if (colorCount <= 4)  buffer = buffer.concat([0,1,0])
@@ -80,7 +93,15 @@ export function fileHeader(data:{width:number, height:number, colors:number[]}) 
     else if (colorCount <= 16) buffer = buffer.concat([1,0,0])
     else buffer = buffer.concat([0, 0, 0])
 
-    data.colors.forEach
+    // ( 1 byte )
+    buffer = buffer.concat([0,1]) // version: 1
+        .concat(number2Bits(widthExp, 3))
+        .concat(number2Bits(heightExp, 3))
+    
+    // ( n bytes )
+    data.colors.forEach( c => 
+        buffer = buffer.concat( number2Bits(c, 8) )
+    )
 
     return buffer
 }
