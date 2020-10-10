@@ -102,9 +102,10 @@ export function fileHeader(data:{width:number, height:number, colors:number[]}) 
         .concat(number2Bits(heightExp, 3))
     
     // ( n bytes )
-    data.colors.forEach( c => 
+    data.colors.forEach( (c, i) => {
+        console.log(i, c)
         buffer = buffer.concat( number2Bits(c, 8) )
-    )
+    })
 
     return buffer
 }
