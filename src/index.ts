@@ -48,14 +48,15 @@ if (!testing) {
                 let compressed:Bit[] = []
                 
                 const indexed = trueColorToIndexed(this)
+                const planes  = splitInPlanes(indexed.pixels, this.width, this.height, false, verbose)
+
                 compressed = compressed.concat( fileHeader({
                     width: this.width,
                     height: this.height,
-                    colors: indexed.colors
+                    colors: planes.choosenColors
                 }))
 
-                const planes  = splitInPlanes(indexed.pixels, this.width, this.height, false, verbose)
-                planes.forEach( plane => compressed = compressed.concat(bitPlane(plane)))
+                planes.bits.forEach( plane => compressed = compressed.concat(bitPlane(plane)))
 
                 const varName = slug(cli.flags.input)            
                 reduced = `const unsigned char ${varName}[] = `

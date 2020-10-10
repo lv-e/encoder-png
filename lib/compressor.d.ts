@@ -10,4 +10,7 @@ export declare function fileHeader(data: {
 }): Bit[];
 export declare function encodeLength(l: number): Bit[];
 export declare function decodeLength(data: Bit[]): number;
-export declare function splitInPlanes(indexedBuffer: number[], width: number, height: number, agressive?: boolean, verbose?: boolean): Bit[][];
+export declare function splitInPlanes(indexedBuffer: number[], width: number, height: number, agressive?: boolean, verbose?: boolean): {
+    bits: Bit[][];
+    choosenColors: number[];
+};

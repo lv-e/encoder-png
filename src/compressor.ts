@@ -79,6 +79,9 @@ export function fileHeader(data:{width:number, height:number, colors:number[]}) 
  0000010 | color       | 2 * #planes color definitions as DB32 index number
 */
 
+    if((Math.log(data.width) / Math.log(2.0))%1 != 0) throw new Error("WRONG IMAGE WIDTH!");
+    if((Math.log(data.height) / Math.log(2.0))%1 != 0) throw new Error("WRONG IMAGE HEIGHT!");
+    
     const widthExp  = Math.ceil(Math.log(data.width) / Math.log(2.0))   - 2
     const heightExp = Math.ceil(Math.log(data.height) / Math.log(2.0))  - 2
 
@@ -137,7 +140,7 @@ export function decodeLength(data:Bit[]) : number {
 export function splitInPlanes(indexedBuffer:number[], 
                                 width:number, height:number,
                                 agressive:boolean = true,
-                                verbose:boolean = false) : Bit[][] {
+                                verbose:boolean = false) {
     
     let colors:number[] = []
     indexedBuffer.forEach( c => {
@@ -145,13 +148,14 @@ export function splitInPlanes(indexedBuffer:number[],
     })
     
     let planes = Math.ceil(Math.log(colors.length) / Math.log(2.0))
-    let response:Bit[][] = []
+    let bits:Bit[][] = []
 
     let bestScore       = 999999
     let cpuLimiter      = 1024
     let maxLoops        = Math.min(cpuLimiter, (agressive ? factorial(colors.length) : 1))
     let permutations    = maxLoops > 1 ? perm(colors) : [colors]
-    
+    let choosenColors   = colors
+
     for(let p = 0; p < maxLoops; p++) {
 
         let attempt:Bit[][] = [];
@@ -181,7 +185,8 @@ export function splitInPlanes(indexedBuffer:number[],
         
         if (score < bestScore) {
             bestScore = score
-            response = attempt
+            bits = attempt
+            choosenColors = attemptColors
         }
     }
 
@@ -194,7 +199,7 @@ export function splitInPlanes(indexedBuffer:number[],
             `\n⌊ raw indexed: ${raw.toFixed(2)}Kbs`)
     }
 
-    return response
+    return {bits, choosenColors}
 }
 
 

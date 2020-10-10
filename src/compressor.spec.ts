@@ -72,10 +72,10 @@ function testPNGCompression(file:string, agressive:boolean = true) : Promise<voi
                 const planes  = splitInPlanes(indexed.pixels, this.width, this.height, agressive, true)
                 
                 let compressed:number[] = []
-                planes.forEach( p => compressed = compressed.concat(compressBitPlane(p)))
+                planes.bits.forEach( p => compressed = compressed.concat(compressBitPlane(p)))
                 
                 const after = compressed.length
-                const before = (this.width * this.height * planes.length)
+                const before = (this.width * this.height * planes.bits.length)
                 
                 expect(after).toBeLessThan(before)
                 resolve()
