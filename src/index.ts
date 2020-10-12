@@ -27,7 +27,8 @@ if (!testing) {
     `,{ flags: {
         input:  { type: 'string', alias: 'i'},
         output: { type: 'string', alias: 'o'},
-        compress: { type: 'boolean', alias: 'c'}
+        compress: { type: 'boolean', alias: 'c'},
+        agressive: { type: 'boolean', alias: 'a'}
     }})
 
     if (cli.input[0] == "help") {
@@ -48,7 +49,7 @@ if (!testing) {
                 let compressed:Bit[] = []
                 
                 const indexed = trueColorToIndexed(this)
-                const planes  = splitInPlanes(indexed.pixels, this.width, this.height, false, verbose)
+                const planes  = splitInPlanes(indexed.pixels, this.width, this.height, cli.flags.agressive, verbose)
 
                 compressed = compressed.concat( fileHeader({
                     width: this.width,

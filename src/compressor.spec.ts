@@ -121,6 +121,8 @@ test("file header generation", () =>{
         0,0,0,0,0,0,1,1,
         0,0,0,0,0,1,0,0,
         0,0,0,0,0,1,0,1,
+        0,0,0,0,0,0,0,0, // color padding
+        0,0,0,0,0,0,0,0, // color padding
     ])
 
     let hdr16 = fileHeader({width:128, height:128, colors:colors(16)})
@@ -152,7 +154,7 @@ test("file header generation", () =>{
     let hdr32 = fileHeader({width:8, height:512, colors:colors(32)})
     expect(hdr32.slice(0,16)).toStrictEqual([ 
         0,1,1,0,0,
-        0,0,0,
+        1,0,1,
 
         0,1,
         0,0,1, 1,1,1
@@ -186,7 +188,6 @@ test("plane header generation", () =>{
     bits = pump(0, 600).concat(pump(1, 600))
 
     const planeHeaderB = bitPlane(bits)
-    console.log("planeHeaderB", planeHeaderB.join(","))
     
     expect(planeHeaderB).toStrictEqual([
 

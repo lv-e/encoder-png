@@ -69,7 +69,7 @@ export function fileHeader(data:{width:number, height:number, colors:number[]}) 
      011 | 1bpp planes | 000: don't use planes;
          |             | 001: 1p/2colors, 010: 2p/4colors;
          |             | 011: 3p/8colors, 100: 4p/16colors.  
-         |             | 
+         |             | 101: 5p/32colors.
 ---------+-------------+------------------------= 1 byte =----------------------
       01 | version     | current value is 01
      001 | width       | 2 ^ (w+2) = 8px  (from 4px to 512px).
@@ -94,7 +94,8 @@ export function fileHeader(data:{width:number, height:number, colors:number[]}) 
     else if (colorCount <= 4)  buffer = buffer.concat([0,1,0])
     else if (colorCount <= 8)  buffer = buffer.concat([0,1,1])
     else if (colorCount <= 16) buffer = buffer.concat([1,0,0])
-    else buffer = buffer.concat([0, 0, 0])
+    else if (colorCount <= 32) buffer = buffer.concat([1,0,1])
+    else throw new Error("MORE THAN 32 colors!")
 
     // ( 1 byte )
     buffer = buffer.concat([0,1]) // version: 1
@@ -102,7 +103,10 @@ export function fileHeader(data:{width:number, height:number, colors:number[]}) 
         .concat(number2Bits(heightExp, 3))
     
     // ( n bytes )
-    data.colors.forEach( (c, i) => {
+    let colorPadding = Math.pow(2, Math.ceil(Math.log(data.colors.length) / Math.log(2))) - data.colors.length
+    let colors = colorPadding > 0 ? data.colors.concat(Array<number>(colorPadding).fill(0)) : data.colors
+
+    colors.forEach( (c, i) => {
         console.log(i, c)
         buffer = buffer.concat( number2Bits(c, 8) )
     })
@@ -152,12 +156,12 @@ export function splitInPlanes(indexedBuffer:number[],
     let bits:Bit[][] = []
 
     let bestScore       = 999999
-    let cpuLimiter      = 1024
-    let maxLoops        = Math.min(cpuLimiter, (agressive ? factorial(colors.length) : 1))
-    let permutations    = maxLoops > 1 ? perm(colors) : [colors]
+    let cpuLimiter      = 64
+    let maxLoops        = agressive ? cpuLimiter : 1
+    let permutations    = maxLoops > 1 ? perm(colors, maxLoops) : [colors]
     let choosenColors   = colors
 
-    for(let p = 0; p < maxLoops; p++) {
+    for(let p = 0; p < maxLoops && p < permutations.length; p++) {
 
         let attempt:Bit[][] = [];
         const attemptColors = permutations[p]
@@ -204,25 +208,36 @@ export function splitInPlanes(indexedBuffer:number[],
 }
 
 
-function perm(xs:Array<number>) {
+function perm(xs:number[], limit:number) {
 
-    let ret:number[][] = [];
-  
-    for (let i = 0; i < xs.length; i = i + 1) {
-      let rest = perm(xs.slice(0, i).concat(xs.slice(i + 1)));
-  
-      if(!rest.length) {
-        ret.push([xs[i]])
-      } else {
-        for(let j = 0; j < rest.length; j = j + 1) {
-          ret.push([xs[i]].concat(rest[j]))
-        }
-      }
+    let ret:number[][] = []
+
+    for(let i = 0; i < limit && i < factorial(xs.length); i++) {
+        let suffled:number[] = shuffle(xs)
+        ret.push(suffled)
     }
 
     return ret;
 }
 
+function shuffle(array:number[]) {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+  
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+  
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+  
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+  
+    return array;
+  }
 
 function factorial(n:number) {
 

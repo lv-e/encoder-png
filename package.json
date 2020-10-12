@@ -23,7 +23,7 @@
     "lv-encoder-png": "./lib/index.js"
   },
   "scripts": {
-    "dryrun": "tsc -p . && ./lib/index.js verbose -i /tmp/image.png -o /tmp/image.h -c true"
+    "dryrun": "tsc -p . && ./lib/index.js verbose -i /tmp/image.png -o /tmp/image.h -c true -a false"
   },
   "dependencies": {
     "@lv-game-editor/lv-cli": "^1.x",
