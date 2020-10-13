@@ -9,6 +9,7 @@ import { PNG } from "pngjs";
 import { exit } from "process";
 import { bitsToHex } from "./bits-to-hex";
 import { Bit, bitPlane, fileHeader, splitInPlanes } from "./compressor";
+import { decoder_template_declarations, decoder_template_on_enter, decoder_template_on_exit, replaceAll } from "./decoder-template";
 import { indexedToHex } from "./indexed-to-hex";
 import { nearest } from "./nearest-color";
 import { slug } from "./slug";
@@ -42,7 +43,9 @@ if (!testing) {
         .pipe(new PNG())
         .on("parsed", function () {
 
-            let reduced:string
+            let declarations:string
+            let on_enter = ""
+            let on_exit = ""
             
             if (cli.flags.compress) {
 
@@ -59,9 +62,16 @@ if (!testing) {
 
                 planes.bits.forEach( plane => compressed = compressed.concat(bitPlane(plane)))
 
-                const varName = slug(cli.flags.input)            
-                reduced = `const unsigned char ${varName}[] = `
-                reduced += bitsToHex(compressed) + ";"
+                const varName = slug(cli.flags.input)     
+                declarations = decoder_template_declarations
+                declarations = replaceAll(declarations, "{{filename}}", varName)
+                declarations = replaceAll(declarations, "{{hex}}", bitsToHex(compressed))
+                
+                on_enter = decoder_template_on_enter
+                on_enter = replaceAll(on_enter, "{{filename}}", varName)
+
+                on_exit = decoder_template_on_exit
+                on_exit = replaceAll(on_exit, "{{filename}}", varName)
 
             } else {
 
@@ -96,18 +106,18 @@ if (!testing) {
                 for (let i = 0; i < pad; i++) indexed.push(0)
             
                 const varName = slug(cli.flags.input)            
-                reduced = `const unsigned char ${varName}[] = `
-                reduced += indexedToHex(indexed) + ";"
+                declarations = `const unsigned char ${varName}[] = `
+                declarations += indexedToHex(indexed) + ";"
 
                 comparisson.pack().pipe(fs.createWriteStream("/tmp/out.png"));
             }
             
             let encoded:lv.encoded = {
-                declarations: reduced,
+                declarations: declarations,
                 include_directive: null,
                 on_awake: null,
-                on_enter: null,
-                on_exit: null,
+                on_enter: on_enter,
+                on_exit: on_exit,
                 on_frame: null
             }
         

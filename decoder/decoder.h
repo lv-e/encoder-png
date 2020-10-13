@@ -1,30 +1,24 @@
 #ifndef PRIPS_DECODER
 #define PRIPS_DECODER
 
-#include <stdlib.h>
-
-#if VERBOSE
-#define LOG(message, args...)     printf(message, ## args)
-#else
-#define LOG(message, args...)
-#endif
-
 #define PRIPS_FILE_VERSION 		0b01
 #define PRIPS_FILE_SIGNATURE 	0b01100
 
 #include <math.h>
+#include <stdlib.h>
 
 namespace Prips{
 
-	typedef unsigned char Byte;
+	typedef unsigned char byte;
 	typedef unsigned short ui16;
 	typedef unsigned int ui32;
 
 	typedef struct PlanesWalker {
 
 		ui32 byteStart;
-        const Byte *const image;
 		ui32 sizeInBytes;
+
+        const byte *const image;
 		
 		ui32 cursor;
 		ui32 currentByte;
@@ -33,7 +27,7 @@ namespace Prips{
 		ui32 rleBuffer;
 		ui32 currentColorBit;
 
-		PlanesWalker(ui32 _byteStart, const Byte *const _image) : byteStart(_byteStart), image(_image){
+		PlanesWalker(ui32 _byteStart, const byte *const _image) : byteStart(_byteStart), image(_image){
             rewind();
 		}
 
@@ -45,7 +39,7 @@ namespace Prips{
 
 			sizeInBytes = advance();
 			goToNextByte();
-			sizeInBytes += cursor;
+			sizeInBytes += cursor - byteStart;
 
 			pickFirstBit();
 			rleBuffer = advance();
@@ -109,56 +103,70 @@ namespace Prips{
 
 	typedef struct File {
 
-		Byte planes;
-		Byte available;
+		byte planes;
+		byte available;
+		byte hasAlpha;
 
 		ui16 width;
 		ui16 height;
 
-        const Byte *const image;
+        const byte *const image;
         PlanesWalker *p;
 
-		File(const Byte *const _image) : image(_image){
+		File(const byte *const _image) : image(_image){
 
-			Byte headerHigh = *(image + 0);
-			Byte headerLow  = *(image + 1);
+			byte headerHigh = *(image + 0);
+			byte headerLow  = *(image + 1);
 
 			available = (headerHigh & 0b11111000) >> 3 == PRIPS_FILE_SIGNATURE;
 			available = available && (headerLow & 0b11000000) >> 6 == PRIPS_FILE_VERSION;
 
 			if (!available) return;
 
-			planes 	= (Byte) (headerHigh & 0b00000111);	
-			width 	= pow(2, 2 + ((Byte) (headerLow & 0b00111000) >> 3));
-			height 	= pow(2, 2 + ((Byte) (headerLow & 0b00000111)));
+			planes 	= (byte) (headerHigh & 0b00000111);	
+			width 	= pow(2, 2 + ((byte) (headerLow & 0b00111000) >> 3));
+			height 	= pow(2, 2 + ((byte) (headerLow & 0b00000111)));
 
-            p = new PlanesWalker(planesStart(), (const Byte *const) image);
-		}
-
-		~File(){
-			delete p;
+            p = NULL;
 		}
 
 		inline ui32 planesStart(){
-			return 2 + planes * 2; // 2 bytes header + (n * colors)
+			return 2 + pow(2, planes); // 2 bytes header + (n * colors)
 		}
 
 		unsigned short color(ui16 index) {
-			return *(image + 2 + index); // 2 bytes header + (n * colors)
+			return *(image + (2 + index)); // 2 bytes header + (n * colors)
 		}
 
-		Byte* decompress(){
+		byte* decompress(){
 			
 			if (!available) return NULL;
+			byte *buffer = (byte*) malloc(height * width * sizeof(byte));
+			ui32 planePadding = 0;
+			hasAlpha = false;
 
-            ui32 colorA = color(0);
-            ui32 colorB = color(1);
-            
-			Byte *buffer = (Byte*) malloc(height * width * sizeof(Byte));
+			for(ui16 pln = 0; pln < planes; pln++){
 
-			for (int y = 0; y < height; y++) {
-				for (int x = 0; x < width; x++) {
-					*(buffer + x + y * width) = p->nextPixelColor() ? colorA : colorB;
+				p = new PlanesWalker(planesStart() + planePadding, (const byte *const) image);
+				planePadding += p->sizeInBytes;
+
+				for (ui16 y = 0; y < height; y++) {
+					for (ui16 x = 0; x < width; x++) {
+						byte b = pln ? *(buffer + (x + y * width)) : 0;
+						b = (b <<= 1) | p->nextPixelColor();
+						*(buffer + (x + y * width)) = b;
+					}
+				}
+
+				delete p;
+				p == NULL;
+			}
+
+			for (ui16 y = 0; y < height; y++) {
+				for (ui16 x = 0; x < width; x++) {
+					const byte c = color(*(buffer + (x + y * width)));
+					*(buffer + (x + y * width)) = c;
+					if (c == 0) hasAlpha = true;
 				}
 			}
 
@@ -166,6 +174,37 @@ namespace Prips{
 		}
 
 	} File; 
+
+	typedef struct Drawable {
+		
+		byte width;
+		byte height;
+		byte hasAlpha;
+		byte *decompressed;
+
+		Drawable(const byte *const data) {
+			
+			File *parser = new File(data);
+			
+			width = parser->width;
+			height = parser->height;
+			decompressed = parser->decompress();
+			hasAlpha = parser->hasAlpha;
+
+			delete parser;
+			parser = NULL;
+		}
+
+		void draw(const byte x, const byte y) {
+			lvDisplay.blit(lv::Region( x, y, width, height), decompressed);
+		}
+
+		~Drawable(){
+			free(decompressed);
+			decompressed = NULL;
+		}
+
+	} Drawable;
 }
 
 #endif
