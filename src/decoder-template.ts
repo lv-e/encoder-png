@@ -228,5 +228,5 @@ export const decoder_template_on_enter = `
 
 export const decoder_template_on_exit = `
 	delete PNG::{{filename}};
-	PNG::{{filename}} = nil;
+	PNG::{{filename}} = NULL;
 `
