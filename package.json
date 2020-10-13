@@ -1,6 +1,6 @@
 {
   "name": "@lv-game-editor/encoder-png",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "encoder for .png image files",
   "author": "“Lino <luizgustavolino@gmail.com> (http://github.com/luizgustavolino)",
   "homepage": "https://github.com/lv-e/encoder-png",
