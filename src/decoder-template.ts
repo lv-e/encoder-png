@@ -223,7 +223,7 @@ namespace PNG {
 
 `
 export const decoder_template_on_enter = `
-	PNG::{{filename}} = new Prips::Drawable( (const Prips::byte *const) &PNG::raw{{filename}});
+	PNG::{{filename}} = new Prips::Drawable( (const Prips::byte *const) &PNG::raw_{{filename}});
 `
 
 export const decoder_template_on_exit = `
