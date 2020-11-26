@@ -26,7 +26,6 @@
                 user-select: none;
                 -moz-user-select: none;
                 -webkit-user-select: none;
-                overflow: hidden;
             }
             
             .img-container img{
@@ -35,10 +34,11 @@
                 padding: 6px;
                 border: 2px solid #5B4A79;
                 border-radius: 2px;
+                transition: transform .2s;
             }
 
             .img-container img:hover{
-                zoom: 2;
+                transform: scale(3.0);
             }
 
             .img-container p {
