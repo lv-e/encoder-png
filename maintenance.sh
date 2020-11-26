@@ -51,7 +51,7 @@ rebuild(){
 edit() {
     rm -rf ./lib
     tsc -p .
-    node ./lib/editor.js -p 3101
+    node ./lib/editor.js -p 3201
 }
 
 test(){
