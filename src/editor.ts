@@ -4,6 +4,7 @@
 import * as fs from "fs";
 import http from "http";
 import meow from "meow";
+import { PNG } from "pngjs";
 import url from "url";
 import { PNG2Indexed } from "./pn2idx";
 
@@ -39,6 +40,7 @@ function loadingHTML(file:string) {
                 user-select: none;
                 -moz-user-select: none;
                 -webkit-user-select: none;
+                overflow: hidden;
             }
             
             .img-container img{
@@ -49,14 +51,22 @@ function loadingHTML(file:string) {
                 border-radius: 2px;
             }
 
-            .img-container span {
+            .img-container img:hover{
+                zoom: 2;
+            }
+
+            .img-container p {
                 background-color: #65636C;
                 margin: 6px;
-                padding: 6px;
+                padding: 2px 6px;
                 border: 2px solid #636169;
                 border-radius: 2px;
                 color: #F5FAFF;
-                text-align: center;
+                text-align: left;
+            }
+
+            .img-container span {
+                color: #C3BFCF;
             }
 
             .loading {
@@ -80,11 +90,16 @@ function loadingHTML(file:string) {
             <span style="flex-grow: 1;"></span>
             <div class="img-container container" id="container_original">
                 <img class="loading" id="img_original" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
-                <span id="size_original">&nbsp;</span>
+                <p id="size_original">&nbsp;</p>
+            </div>
+            <div class="container">
+                <span style="flex-grow: 1;"></span>
+                <img style="padding: 0px 10px;" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAWCAYAAADEtGw7AAAAAXNSR0IArs4c6QAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAFqADAAQAAAABAAAAFgAAAAA/6RFgAAAAm0lEQVQ4EdWVSwqAMAxErfSm4srzuBLPqqtXSmBIPxSrm5h2MnmGgGFxnn07nlxy3WfIc/W+qove81hqAClfQK7qvyeGDFKPPI0CIQa9MRnXGnnkEVKEtQ2UvpkYQ4As4DxbAamNlnx+4v/M2JIy+2iHzoWN6Oy5ypv3WJHSKBkrIgwoKI3JuLSARgoEn2F77P6/IITEI0U3jPgFA3dDfTED4SEAAAAASUVORK5CYII="/>
+                <span style="flex-grow: 1;"></span>
             </div>
             <div class="img-container container" id="container_compressed">
                 <img class="loading" id="img_compressed" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"/>
-                <span id="size_compressed">&nbsp;</span>
+                <p id="size_compressed">&nbsp;</p>
             </div>
             <span style="flex-grow: 1;"></span>
         </div>
@@ -105,8 +120,8 @@ function loadingHTML(file:string) {
                         imgTag.classList.remove("loading")
 
                         let spmTag = document.getElementById("size_" + type)
-                        let sizeFormatted = response.size.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-                        spmTag.innerText = sizeFormatted + " bytes"
+                        let sizeFormatted = (response.size / 1024.0).toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits:1 })
+                        spmTag.innerHTML = "<span>" + (type == "original" ? "Raw" : "Prips") + "</span><br/>" + sizeFormatted + " Kb"
 
                     } else {
                         console.log(JSON.parse(xhr.responseText));
@@ -130,9 +145,9 @@ function loadingHTML(file:string) {
                 loadImage("compressed")
             }
 
-            </script>
-        </body>
-    </html>
+        </script>
+    </body>
+</html>
 `
 }
 
@@ -215,7 +230,9 @@ export function editor(port:number){
                 return
             }
 
-            let data = fs.readFileSync(file);
+            const data = fs.readFileSync(file);
+            const png = PNG.sync.read(data);
+            const sizeOriginal = png.width * png.height * 3 // 3 bpp
 
             response.writeHead(200, {
                 'content-type': 'application/json',
@@ -223,7 +240,7 @@ export function editor(port:number){
             })
             
             response.end(apiResponse(
-                {size:data.length, png:data.toString('base64')}
+                {size: sizeOriginal, png:data.toString('base64')}
             ))
             
         }
