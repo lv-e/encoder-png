@@ -12,7 +12,7 @@ const IP = "0.0.0.0"
 
 function loadingHTML(file:string) {
     return `
-    <html>
+<html>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="initial-scale=1.0">
@@ -40,7 +40,6 @@ function loadingHTML(file:string) {
                 user-select: none;
                 -moz-user-select: none;
                 -webkit-user-select: none;
-                overflow: hidden;
             }
             
             .img-container img{
@@ -49,10 +48,11 @@ function loadingHTML(file:string) {
                 padding: 6px;
                 border: 2px solid #5B4A79;
                 border-radius: 2px;
+                transition: transform .2s;
             }
 
             .img-container img:hover{
-                zoom: 2;
+                transform: scale(3.0);
             }
 
             .img-container p {
@@ -129,6 +129,7 @@ function loadingHTML(file:string) {
                 };
 
                 xhr.open("GET", "stats/" + type + "/?file=${file}");
+                
                 xhr.send();
             }
 
