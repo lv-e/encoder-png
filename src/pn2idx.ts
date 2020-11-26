@@ -9,9 +9,7 @@ import { Bit, bitPlane, fileHeader, splitInPlanes } from "./compressor";
 import { nearest } from "./nearest-color";
 import { trueColorToIndexed } from "./truecolor-to-indexed";
 
-export function PNG2Indexed(file:string, completion:(data:null | {
-    original:{size:number, png:string},
-    compressed:{size:number, png:string} }) => void){
+export function PNG2Indexed(file:string, completion:(data:null | {size:number, png:string}) => void){
 
     if (file == undefined) {
         completion(null)
@@ -69,19 +67,11 @@ export function PNG2Indexed(file:string, completion:(data:null | {
     comparisson.on('end', function() {
         let result = Buffer.concat(chunks);
         const png64 = result.toString('base64')
-        completion( {
-            compressed:{size:compressedSize, png:png64},
-            original:{size:data.length, png:data.toString('base64')}
-        })
+        completion( {size:compressedSize, png:png64})
     });
 
     comparisson.on("error", function(){
         completion(null)
     })
-
-        // })
-        // .on("error", function(){
-        //     completion(null)
-        // })
     
 }
