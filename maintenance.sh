@@ -48,6 +48,12 @@ rebuild(){
     tsc -p .
 }
 
+edit() {
+    rm -rf ./lib
+    tsc -p .
+    node ./lib/editor.js -p 3101
+}
+
 test(){
 
     echo "cleaning and rebuilding..."
@@ -64,11 +70,13 @@ test(){
         echo "available options are:"
         echo "1) publish"
         echo "2) test"
+        echo "3) test editor"
         read -p "choose one: " opt; echo "--"
 
         case $opt in
             1) publish; break;;
             2) test; break;;
+            3) edit; break;;
             * ) echo "ok! bye."; exit;;
         esac
 done

@@ -20,7 +20,8 @@
   ],
   "main": "./lib/index.js",
   "bin": {
-    "lv-encoder-png": "./lib/index.js"
+    "lv-encoder-png": "./lib/index.js",
+    "lv-editor-png": "./lib/editor.js"
   },
   "scripts": {
     "dryrun": "tsc -p . && ./lib/index.js verbose -i /tmp/image.png -o /tmp/image.h -c true -a false"
