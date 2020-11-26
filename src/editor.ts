@@ -6,6 +6,7 @@ import { readFileSync } from "fs";
 import http from "http";
 import meow from "meow";
 import url from "url";
+import { PNG2Indexed } from "./pn2idx";
 
 const IP = "0.0.0.0"
 
@@ -28,11 +29,29 @@ export function editor(port:number){
             return
         }
         
-        const file = Buffer.from(file64, 'base64').toString('binary')
+        const file:string = Buffer.from(file64, 'base64').toString('binary').toString()
         const fileData = readFileSync(file, {encoding: 'base64'});
 
-        response.writeHead(200, {'content-type': 'text/html;charset=UTF-8'})        
-        response.end(`<img src="data:image/png;base64, ${fileData}"></img>`)
+        if(file == null) {
+            response.writeHead(400)
+            response.end()
+            return
+        }
+        
+        PNG2Indexed(file, data => {
+            
+            if (data == null) {
+                response.writeHead(500)
+                response.end()
+                return
+            }
+
+            response.writeHead(200, {'content-type': 'text/html;charset=UTF-8'})        
+            response.end(`
+                <img src="data:image/png;base64, ${fileData}"></img>
+                <img src="data:image/png;base64, ${data.png}"></img>
+            `)
+        })
 
     })
 
