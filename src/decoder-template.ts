@@ -160,13 +160,13 @@ namespace Prips{
 				for (ui16 y = 0; y < height; y++) {
 					for (ui16 x = 0; x < width; x++) {
 						byte b = pln ? *(buffer + (x + y * width)) : 0;
-						b = (b <<= 1) | p->nextPixelColor();
+						b = (b << 1) | p->nextPixelColor();
 						*(buffer + (x + y * width)) = b;
 					}
 				}
 
 				delete p;
-				p == NULL;
+				p = NULL;
 			}
 
 			for (ui16 y = 0; y < height; y++) {
@@ -187,7 +187,7 @@ namespace Prips{
 		byte width;
 		byte height;
 		byte hasAlpha;
-		byte *decompressed;
+		lv::octet *decompressed;
 
 		Drawable(const byte *const data) {
 			
@@ -204,6 +204,12 @@ namespace Prips{
 
 		void draw(const byte x, const byte y) {
 			lvDisplay.blit(lv::Region( x, y, width, height), decompressed);
+		}
+
+		void draw(const lv::Region src, const lv::Point dest) {
+			lvDisplay.blit(
+				src, dest, decompressed, lv::Size(width, height)
+			);
 		}
 
 		~Drawable(){
