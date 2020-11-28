@@ -14,6 +14,7 @@ import { indexedToHex } from "./indexed-to-hex";
 import { nearest } from "./nearest-color";
 import { slug } from "./slug";
 import { trueColorToIndexed } from "./truecolor-to-indexed";
+import path = require("path");
 
 let slugify = require('slugify')
 
@@ -121,10 +122,19 @@ if (!testing) {
                 on_frame: null
             }
         
-            fs.writeFileSync(
-                cli.flags.output,
-                JSON.stringify(encoded, null, "\t")
-            )
+            saveFile(JSON.stringify(encoded, null, "\t"), cli.flags.output)
         })
 }
 
+
+export function saveFile(jsonString:string, path:string) {
+    createSubdirs(path)
+    fs.writeFileSync(path, jsonString)
+}
+
+function createSubdirs(filePath:string) {
+    const dir = path.dirname(filePath);
+    if (fs.existsSync(dir)) return true;
+    createSubdirs(dir);
+    fs.mkdirSync(dir);
+}
